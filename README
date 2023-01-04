@@ -33,27 +33,16 @@ from work factor 8 to 9 means the hash takes twice as much time to generate
 
 Building
 --------
-1) Build and install OpenLDAP itself from the root of the distribution or
-from a git checkout
+1) Get OpenLDAP sources
 
-$ ./configure --prefix=/usr/local --enable-modules [other options you want]
-$ make depend
-$ make
-$ sudo make install
+apt source slapd
 
 2) Incorporate the pw-bcrypt module in the source directory
 
-$ cd contrib/slapd-modules/passwd
-$ git clone <this repo> bcrypt
-$ cd bcrypt
+$ cd openldap-2.4.57+dfsg/contrib/slapd-modules/passwd
+$ git clone https://github.com/Marty-Crabneck/openldap-bcrypt.git bcrypt
 
 3) Optional: Customize your setup
-
-Prefix
-The default prefix is /usr/local which means the module will be installed in
-/usr/local/libexec/openldap. If you want to change that, edit the 'prefix'
-variable in the Makefile. It is probably best to set this to whatever you set
-the --prefix to in step 1.
 
 Work factor
 The default work factor used by OpenBSD for regular user passwords is 8. It is
@@ -68,17 +57,24 @@ No matter what the work factor is set to in the code or in the configuration
 file, you will always be able to validate existing passwords that were hashed
 with different work factors.
 
-4) Build the pw-bcrypt module:
+$ $EDITOR bcrypt/pw-bcrypt.c
 
-$ make
-$ sudo make install
+4) Apply patch for debuild
 
-This will install the module to {prefix}/libexec/openldap/
+$ cd ../../..
+$ patch -p1 < contrib/slapd-modules/passwd/bcrypt/openldap-bcrypt-deb.patch
 
-5) Edit your slapd.conf, and add:
+5) Build the OpenLDAP packages:
 
-moduleload /usr/local/libexec/openldap/pw-bcrypt.so WORKFACTOR
-(or wherever you ended up putting your module)
+$ debuild -b -uc -us
+$ cd ..
+$ sudo dpkg -i slapd-contrib_*.deb
+
+This will install the module to /usr/lib/ldap/
+
+6) Edit your slapd.conf, and add:
+
+moduleload /usr/lib/ldap/pw-bcrypt.so WORKFACTOR
 
 The WORKFACTOR argument can be omitted, in which case slapd will use the default
 of 8 or whatever you set it to in step 3.
@@ -91,13 +87,13 @@ password-hash   {BCRYPT}
 However, make sure that all LDAP servers in your environment have the module
 loaded before you do this, otherwise your users will not be able to authenticate.
 
-6) Restart slapd.
+7) Restart slapd.
 
 Testing
 -------
 Use slappasswd to generate some hashes.
 
-$ slappasswd -h '{BCRYPT}' -o module-load="<path-to-the-module>/pw-bcrypt.so" -s randompassword
+$ slappasswd -h '{BCRYPT}' -o module-load="/usr/lib/ldap/pw-bcrypt.so" -s randompassword
 
 (Yes, the keyword here is 'module-load' with a - (dash). In slapd.conf the
 keyword is 'moduleload' without the dash.)
@@ -111,7 +107,7 @@ Debugging
 To see what's going on, recompile with SLAPD_BCRYPT_DEBUG (use the commented-out
 DEFS in the Makefile), and then run slapd from the console:
 
-/usr/local/libexec/slapd -d
+/usr/sbin/slapd -d
 
 WARNING: With debugging enabled, all passwords will be logged in plaintext!
 
