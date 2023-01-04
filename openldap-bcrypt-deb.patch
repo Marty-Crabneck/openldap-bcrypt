@@ -1,0 +1,23 @@
+diff -Nru3 -x '*~' openldap-2.5.13+dfsg.orig/debian/rules openldap-2.5.13+dfsg/debian/rules
+--- openldap-2.5.13+dfsg.orig/debian/rules	2022-09-24 21:40:21.000000000 +0200
++++ openldap-2.5.13+dfsg/debian/rules	2023-01-03 16:52:47.133416706 +0100
+@@ -27,7 +27,7 @@
+ 	CONFIG += --disable-slapd
+ endif
+ 
+-CONTRIB_MODULES = autogroup lastbind passwd passwd/pbkdf2 passwd/sha2 smbk5pwd
++CONTRIB_MODULES = autogroup lastbind passwd passwd/pbkdf2 passwd/sha2 passwd/bcrypt smbk5pwd
+ 
+ # Ensure CC is set correctly for cross builds, unless it has already
+ # been set explicitly.
+diff -Nru3 -x '*~' openldap-2.5.13+dfsg.orig/debian/slapd-contrib.install openldap-2.5.13+dfsg/debian/slapd-contrib.install
+--- openldap-2.5.13+dfsg.orig/debian/slapd-contrib.install	2022-09-24 21:40:21.000000000 +0200
++++ openldap-2.5.13+dfsg/debian/slapd-contrib.install	2023-01-03 17:55:19.361627368 +0100
+@@ -4,5 +4,7 @@
+ usr/lib/ldap/pw-netscape.la
+ usr/lib/ldap/pw-pbkdf2.so*
+ usr/lib/ldap/pw-pbkdf2.la
++usr/lib/ldap/pw-bcrypt.so*
++usr/lib/ldap/pw-bcrypt.la
+ usr/lib/ldap/smbk5pwd.so*
+ usr/lib/ldap/smbk5pwd.la
